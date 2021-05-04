@@ -14,3 +14,4 @@ subtitle: Explainable AI
 ## 학습목차 
 
 1. [설명가능한 AI (Explainable AI)](xai.html)
+1. [`archivist` 모형 객체](xai-archivist.html)
