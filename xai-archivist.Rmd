@@ -18,7 +18,7 @@ output:
     highlight: tango
     code_folding: show
     number_section: true
-    self_contained: false
+    self_contained: true
 bibliography: bibliography_xai.bib
 csl: biomed-central.csl
 urlcolor: blue
@@ -35,7 +35,7 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
 
 # 데이터와 모형 가져오기 [@archivist] {#import-models-datasets}
 
-## 데이터 가져오기 {#import-models-datasets-titanic}
+# `archivist` 객체 가져오기 {#import-models-datasets-titanic}
 
 타이타닉 데이터셋은 기계학습 모형 구축에 있어 무척이나 중요하다. [`archivist`](https://www.jstatsoft.org/article/view/v082i11)를 통해 R 객체와 데이터를 저장하고 필요에 따라 공유하는 것이 가능하다. 먼저 타이타닉 데이터셋과 쟈니(Jonny)가 타이타닉호에 승선했을 때 생존 확률을 알아보자. 참고로 쟈니는 8살이고 Southampton에서 탑승했고, 72 파운드를 지불했으며 부모없이 1등석에 탑승한 정보가 있다. `henry`는 47로, 1등석에 탑승했으며, 혼자 여행중이였으며 25 파운드를 배삭으로 지불했고, Cherbourg 에서 탑승했다. 2021-05-10 현재 시점 `archivist` 버그로 인해 데이터와 모형 접근이 되지 않아 나중에 고쳐지면 가져와서 활용할 예정임.
 
@@ -58,16 +58,19 @@ titanic_svm <- archivist::aread("pbiecek/models/9c27f")
 ```
 
 
-## 타이타닉 데이터셋 {#titanic-dataset}
+# 타이타닉 데이터셋 {#titanic-dataset}
 
 `stablelearner` 팩키지 내부에 `titanic` 데이터셋이 포함되어 있다. 
+전처리가 된 깔끔한 데이터는 `DALEX` 팩키지에 `titanic` 데이터셋으로 저장되어 있다.
 이를 기계학습 예측모형 개발에 사용하자.
 
 ```{r titanic-dataset}
-library(stablelearner)
 library(tidyverse)
+library(DALEX)
+# library(stablelearner)
 
-data("titanic")
+titanic <- DALEX::titanic %>% 
+  na.omit(.)
 
 titanic %>% 
   select(survived, everything()) %>% 
@@ -102,9 +105,46 @@ passengers %>%
 
 ```
 
-## 타이타닉 생존 모델 {#titanic-model}
+# 타이타닉 생존 모델 {#titanic-model}
 
-```{r titanic-model}
+서로 다른 네가지 예측모형을 가지고 타이타닉 생존 모형을 구축한다.
 
+```{r titanic-model, eval = FALSE}
+# 로지스틱 회귀모형
+library("rms")
+titanic_lmr <- lrm(survived == "yes" ~ gender + rcs(age) + class + sibsp + parch + fare + embarked, titanic)
+
+# 랜덤 포레스트
+library("randomForest")
+set.seed(1313)
+titanic_rf <- randomForest(survived ~ class + gender + age + sibsp + parch + fare + embarked, data = titanic)
+
+# GBM
+library("gbm")
+set.seed(1313)
+titanic_gbm <- gbm(survived == "yes" ~ class + gender + age + sibsp + parch + fare + embarked, data = titanic, n.trees = 15000, distribution = "bernoulli")
+
+# SVM
+library("e1071")
+titanic_svm <- svm(survived == "yes" ~ class + gender + age + sibsp + parch + fare + embarked, data = titanic, type = "C-classification", probability = TRUE)
+```
+
+# 모형과 데이터 저장 {#titanic-model-save}
+
+예측모형을 적합시켜 추후 XAI 목적으로 사용될 수 있도록 로컬 파일에 저장시키고 나중에 불러와서 후속 작업을 수행한다. 
+
+```{r training-data, eval = FALSE}
+titinic_list <- list(
+  data = list(training = titanic,
+              henry    = henry,
+              johnny_d = johnny_d),
+  model = list(titanic_lmr = titanic_lmr,
+               titanic_rf  = titanic_rf,
+               titanic_gbm = titanic_gbm,
+               titanic_svm = titanic_svm)
+)
+
+titinic_list %>% 
+  write_rds("data/titinic_list.rds")
 ```
 

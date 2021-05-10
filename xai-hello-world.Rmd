@@ -1,0 +1,50 @@
+---
+layout: page
+title: "XAI"
+subtitle: "XAI 헬로 월드"
+author:
+- name: "이광춘"
+  affiliation: "[Tidyverse Korea](https://www.facebook.com/groups/tidyverse/)"
+date: "`r Sys.Date()`"
+tags: ["데이터 과학", "Data Science", "데이터 사이언스", "설명가능한 AI", "XAI", "Explainable AI", "모형 객체", "archivist", "헬로 월드"]
+output:
+  html_document: 
+    include:
+      after_body: footer.html
+      before_body: header.html
+    toc: yes
+    toc_depth: 2
+    toc_float: true
+    highlight: tango
+    code_folding: show
+    number_section: true
+    self_contained: true
+bibliography: bibliography_xai.bib
+csl: biomed-central.csl
+urlcolor: blue
+linkcolor: blue
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
+                      comment="", digits = 3, tidy = FALSE, prompt = FALSE, fig.align = 'center')
+
+```
+
+# 모형과 데이터 불러오기 {-#titanic-model-import}
+
+데이터와 기계학습 예측모형을 불러오자
+
+```{r import-model-data, eval = TRUE}
+titanic_list  <-  
+  read_rds("data/titinic_list.rds")
+
+titanic_list %>% names
+
+str(titanic_list, max.level = 2)
+
+glimpse(titanic_list)
+```
+
