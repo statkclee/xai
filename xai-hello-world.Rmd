@@ -88,6 +88,12 @@ explain_gbm <- explain(model = titanic_list$model$titanic_gbm,
 
 # 모형 성능 {.tabset}
 
+모형 성능평가는 다음 세가지 척도를 가지고 고민할 수 있다.
+
+- 모형평가(model evaluation)
+- 모형비교(model comparison)
+- 훈련/시험 데이터 비교(out-of-sample, out-of-time comparisons)
+
 ## AUC {#performance-auc}
 
 ```{r model-performance}
@@ -151,4 +157,6 @@ performance_tbl %>%
     GBM = colDef(format = colFormat(digits = 2))
   ))
 ```
+
+
 
