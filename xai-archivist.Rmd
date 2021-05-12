@@ -70,7 +70,8 @@ library(DALEX)
 # library(stablelearner)
 
 titanic <- DALEX::titanic %>% 
-  na.omit(.)
+  na.omit(.) %>% 
+  as_tibble()
 
 titanic %>% 
   select(survived, everything()) %>% 
@@ -80,23 +81,27 @@ titanic %>%
 쟈니(Jonny)와 헨리(henry)도 기계학습 예측모형을 통해 생존확률을 예측하는데 필요한 탑승자로 분류하여 준비한다.
 
 ```{r johnny-henry}
-johnny_d <- data.frame(
+johnny_d <- 
+  data.frame(
           class = factor("1st", levels = c("1st", "2nd", "3rd", 
                      "deck crew", "engineering crew", 
                      "restaurant staff", "victualling crew")),
           gender = factor("male", levels = c("female", "male")),
           age = 8, sibsp = 0, parch = 0, fare = 72,
           embarked = factor("Southampton", levels = c("Belfast",
-                      "Cherbourg","Queenstown","Southampton")))
+                      "Cherbourg","Queenstown","Southampton"))) %>% 
+  as_tibble()
 
-henry <- data.frame(
+henry <- 
+  data.frame(
        class = factor("1st", levels = c("1st", "2nd", "3rd", 
                   "deck crew", "engineering crew", 
                   "restaurant staff", "victualling crew")),
        gender = factor("male", levels = c("female", "male")),
        age = 47, sibsp = 0, parch = 0, fare = 25,
        embarked = factor("Cherbourg", levels = c("Belfast",
-                         "Cherbourg","Queenstown","Southampton")))
+                         "Cherbourg","Queenstown","Southampton"))) %>% 
+  as_tibble()
 
 passengers <- bind_rows(johnny_d, henry)
 
@@ -134,7 +139,7 @@ titanic_svm <- svm(survived == "yes" ~ class + gender + age + sibsp + parch + fa
 예측모형을 적합시켜 추후 XAI 목적으로 사용될 수 있도록 로컬 파일에 저장시키고 나중에 불러와서 후속 작업을 수행한다. 
 
 ```{r training-data, eval = FALSE}
-titinic_list <- list(
+titanic_list <- list(
   data = list(training = titanic,
               henry    = henry,
               johnny_d = johnny_d),
@@ -144,7 +149,7 @@ titinic_list <- list(
                titanic_svm = titanic_svm)
 )
 
-titinic_list %>% 
-  write_rds("data/titinic_list.rds")
+titanic_list %>% 
+  write_rds("data/titanic_list.rds")
 ```
 
