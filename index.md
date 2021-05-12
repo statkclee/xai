@@ -17,3 +17,4 @@ subtitle: Explainable AI
 1. [`archivist` 모형 객체](xai-archivist.html)
 1. [XAI 헬로 월드](xai-hello-world.html)
 1. [XAI 데이터셋(Global) 설명](xai-global-explanation.html)
+1. [XAI 관측점(Instance) 설명](xai-instance-explanation.html)
