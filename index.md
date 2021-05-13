@@ -19,4 +19,5 @@ subtitle: Explainable AI
     1. [XAI 데이터셋(Global) 설명](xai-global-explanation.html)
     1. [XAI 관측점(Instance) 설명](xai-instance-explanation.html)
 1. [XAI 보고서(modelDown)](xai-modeldown.html)
+1. [인터랙티브 XAI 보고서(modelStudio)](xai-modelStudio.html)
 
