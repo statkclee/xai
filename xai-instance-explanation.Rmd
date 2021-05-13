@@ -59,9 +59,9 @@ library(DALEX)
 library(DALEXtra)
 library(randomForest)
 
-explainer_rf  <- explain(titanic_list$model$titanic_rf, 
-                          data = titanic_list$data$training %>% select(-survived),
-                             y = titanic_list$data$training %>% select(survived))
+explainer_rf  <- DALEX::explain(titanic_list$model$titanic_rf, 
+                                data = titanic_list$data$training %>% select(-survived),
+                                 y = titanic_list$data$training %>% select(survived))
 
 ```
 
@@ -184,4 +184,110 @@ shap_average_gg <- plot(shap_henry, show_boxplots = FALSE) +
 shap_boxplot_gg / shap_average_gg
 ```
 
+# 라임(LIME) {#lime}
+
+분해(Break-down), 새플리 값(Shapley Value)는 설명변수가 크지 않는 경우 사용할 수 있지만, 설명변수가 많은 경우 Local Interpretable Model-agnostic Explanations (LIME)이 제시되고 있다.
+
+
+```{r lime-johnny, error = TRUE}
+library("DALEXtra") 
+library("lime")
+
+lime_johnny <- DALEXtra::predict_surrogate(explainer = explainer_rf, 
+                                           new_observation = titanic_list$data$johnny_d,
+                                           n_features = 3, 
+                                           n_permutations = 1000, 
+                                           type = "lime")
+```
+
+
+# Ceteris Paribus {#ceteris-paribus}
+
+라틴어 Ceteris Paribus는 '세테리스 패러버스' 로 발음하고 영어로 "all other things being equal" 로 표현되며 "다른 모든 조건이 동일하다면" 을 의미한다. 즉, What-If 처럼 다른 조건을 동일하게 둔 상태에서 관심있는 변수를 변화시켰을 때 예측값의 변화를 살펴보는 방법이다.
+
+## 쟈니(johnny) {.tabset}
+
+### 표 {#johny-cp-table}
+
+```{r cp-johnny}
+cp_johnny_rf <- predict_profile(explainer = explainer_rf, 
+                                 new_observation = titanic_list$data$johnny_d)
+cp_johnny_rf
+```
+
+### 연속형 변수 {#johny-cp-plot-continuous}
+
+```{r cp-johnny-plot}
+library(patchwork)
+
+plot(cp_johnny_rf, variables = "age") + plot(cp_johnny_rf, variables = "fare") 
+```
+
+### 범주형 변수 {#johny-cp-plot-categorical}
+
+```{r cp-johnny-plot-categorical, error=TRUE}
+plot(cp_johnny_rf, 
+     variables = "embarked", 
+     variable_type = "categorical", 
+     categorical_type = "bars") 
+```
+
+
+## 헨리와 쟈니 {.tabset}
+
+### 헨리 {#henry-cp-plot-categorical}
+
+```{r henry-comparison}
+variable_splits <-list(age = seq(0, 70, 0.1), fare = seq(0, 100, 0.1))
+cp_henry_rf <- predict_profile(explainer = explainer_rf, 
+                                 new_observation = titanic_list$data$henry,
+                                 variable_splits = variable_splits)
+
+plot(cp_henry_rf, variables = "age") + plot(cp_henry_rf, variables = "fare") 
+```
+
+### 쟈니 {#johnny-henry-cp-plot-categorical}
+
+```{r johnny-comparison-all}
+cp_johnny_rf <- predict_profile(explainer = explainer_rf, 
+                                 new_observation = titanic_list$data$johnny_d,
+                                 variable_splits = variable_splits)
+
+plot(cp_johnny_rf, variables = "age") + plot(cp_johnny_rf, variables = "fare") 
+```
+
+
+### 헨리와 쟈니 {#johnny-henry-cp-plot-all}
+
+```{r johnny-comparison-henry}
+cp_henry_johnny_rf <- predict_profile(explainer = explainer_rf, 
+                                 new_observation = rbind(titanic_list$data$henry, titanic_list$data$johnny_d),
+                                 variable_splits = variable_splits)
+
+plot(cp_henry_johnny_rf, variables = "age", color = "_ids_") + 
+  plot(cp_henry_johnny_rf, variables = "fare", color = "_ids_") 
+```
+
+
+# 지역-검진 그래프 {#local-diagnostics}
+
+관측점에 대해 안정성(stability)을 확인하는 과정으로 잔차를 비교한다.
+
+```{r local-diagnostics-all, error = TRUE}
+ldiag_rf <- predict_diagnostics(explainer = explainer_rf, 
+                                new_observation = titanic_list$data$johnny_d,
+                                neighbors = 100)
+
+ldiag_rf %>% plot
+```
+
+
+```{r local-diagnostics}
+ldiag_rf <- predict_diagnostics(explainer = explainer_rf, 
+                                new_observation = titanic_list$data$henry,
+                                neighbors = 100,
+                                variable = "age")
+
+ldiag_rf %>% plot
+```
 
